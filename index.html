@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>中文點符號練習</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+            display: ['Fredoka', '"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+
+    body {
+      background-color: #0f172a;
+      background-image: radial-gradient(#334155 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow: hidden;
+    }
+
+    /* Punctuation Bank Tile Styling */
+    .punc-tile {
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      touch-action: none;
+    }
+    .punc-tile:hover {
+      transform: translateY(-2px) scale(1.03);
+    }
+    .punc-tile:active {
+      transform: scale(0.95);
+    }
+    .punc-tile.selected {
+      border-color: #2563eb !important;
+      transform: translateY(-4px) scale(1.08);
+      box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.5);
+      animation: pulse-ring 1.2s infinite alternate;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.6); }
+      100% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.2); }
+    }
+
+    /* Target Answer Box Styling */
+    .punc-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      font-weight: 900;
+      border-radius: 0.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-image: 
+        linear-gradient(to right, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
+      background-size: 50% 50%;
+      background-position: center;
+    }
+
+    .punc-box.empty {
+      border: 2px dashed #94a3b8;
+      background-color: #f8fafc;
+    }
+    .punc-box.empty:hover {
+      border-color: #3b82f6;
+      background-color: #eff6ff;
+    }
+    .punc-box.filled {
+      border: 2.5px solid #6366f1;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(99, 102, 241, 0.2);
+      color: #1e1b4b;
+    }
+    .punc-box.correct {
+      border: 3px solid #10b981 !important;
+      background-color: #ecfdf5 !important;
+      color: #047857 !important;
+    }
+    .punc-box.incorrect {
+      border: 3px solid #ef4444 !important;
+      background-color: #fef2f2 !important;
+      color: #b91c1c !important;
+    }
+
+    /* Drag Ghost Element */
+    #drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      opacity: 0.9;
+      display: none;
+    }
+
+    /* Custom Scrollbar for Teacher Modal */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center p-1 sm:p-3">
+
+  <!-- Touch Drag Ghost -->
+  <div id="drag-ghost" class="w-12 h-12 bg-white rounded-xl shadow-2xl border-2 border-blue-500 flex items-center justify-center text-2xl font-black text-slate-800"></div>
+
+  <!-- Hidden File Input for JSON Import -->
+  <input type="file" id="json-file-input" accept=".json" class="hidden" onchange="handleImportJSON(event)">
+
+  <!-- 16:9 ASPECT RATIO MAIN CONTAINER (NO SCROLLING) -->
+  <div class="relative w-full max-w-[1400px] aspect-[16/9] max-h-[98vh] bg-slate-50 rounded-2xl md:rounded-3xl shadow-2xl border-4 border-indigo-300 flex flex-col justify-between overflow-hidden">
+
+    <!-- HEADER BAR: Title, Level Tabs & Teacher Mode -->
+    <header class="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white px-3 py-1.5 md:px-5 md:py-2.5 flex items-center justify-between flex-shrink-0 shadow-md">
+      
+      <!-- Title & Icon -->
+      <div class="flex items-center space-x-2">
+        <span class="text-xl md:text-2xl">✏️</span>
+        <div>
+          <h1 class="text-xs sm:text-base md:text-lg font-black tracking-wide font-display">中文點符號練習</h1>
+          <p class="text-[9px] sm:text-[11px] text-purple-100 hidden sm:block">拖曳或點擊標點符號填入框內完成題目！</p>
+        </div>
+      </div>
+
+      <!-- Parallel Level Selection Tabs (並列選單按鈕) -->
+      <div id="level-tabs" class="flex items-center space-x-1.5 bg-black/25 p-1 rounded-xl overflow-x-auto max-w-[55vw] custom-scroll">
+        <!-- Dynamic Level Tab Buttons injected via JS -->
+      </div>
+
+      <!-- Controls & Teacher Mode Switch -->
+      <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <button id="sound-btn" onclick="toggleSound()" class="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-text" class="hidden md:inline">音效</span>
+        </button>
+
+        <button onclick="openTeacherModal()" class="bg-amber-400 hover:bg-amber-300 text-amber-950 px-2.5 py-1 rounded-lg text-xs md:text-sm font-black flex items-center gap-1 shadow transition">
+          <span>⚙️</span>
+          <span>老師模式</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- TOP BLOCK: Punctuation Selection Bank (9 Marks) -->
+    <section class="bg-indigo-50/90 border-b border-indigo-100 px-3 py-1.5 md:px-6 md:py-2 flex-shrink-0">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center space-x-2">
+          <span class="bg-indigo-600 text-white text-[9px] md:text-[11px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">上方區塊</span>
+          <h2 class="text-xs md:text-sm font-bold text-slate-800">🎯 標點符號選擇區：<span class="font-normal text-slate-600 text-[11px] hidden sm:inline">可拖拽，或點擊符號後選空格</span></h2>
+        </div>
+        <div id="selected-hint" class="text-xs font-bold text-indigo-600 hidden animate-pulse">
+          已選擇：<span id="selected-punc-text" class="text-base font-black px-1.5 py-0.5 bg-white rounded border border-indigo-300">，</span> （請點選題目空格）
+        </div>
+      </div>
+
+      <!-- Punctuation Tiles Grid (9 P2 marks) -->
+      <div class="grid grid-cols-9 gap-1 sm:gap-2 md:gap-2.5" id="punc-bank">
+        <!-- Tile 1: 逗號 -->
+        <div draggable="true" data-punc="，" onclick="selectTile(this)" class="punc-tile bg-orange-100 border-2 border-orange-300 text-orange-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">，</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-orange-800 mt-0.5">逗號</div>
+        </div>
+
+        <!-- Tile 2: 句號 -->
+        <div draggable="true" data-punc="。" onclick="selectTile(this)" class="punc-tile bg-teal-100 border-2 border-teal-300 text-teal-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">。</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-teal-800 mt-0.5">句號</div>
+        </div>
+
+        <!-- Tile 3: 感歎號 -->
+        <div draggable="true" data-punc="！" onclick="selectTile(this)" class="punc-tile bg-amber-100 border-2 border-amber-300 text-amber-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">！</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-amber-800 mt-0.5">感歎號</div>
+        </div>
+
+        <!-- Tile 4: 問號 -->
+        <div draggable="true" data-punc="？" onclick="selectTile(this)" class="punc-tile bg-sky-100 border-2 border-sky-300 text-sky-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">？</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-sky-800 mt-0.5">問號</div>
+        </div>
+
+        <!-- Tile 5: 冒號 -->
+        <div draggable="true" data-punc="：" onclick="selectTile(this)" class="punc-tile bg-purple-100 border-2 border-purple-300 text-purple-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">：</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-purple-800 mt-0.5">冒號</div>
+        </div>
+
+        <!-- Tile 6: 開引號 -->
+        <div draggable="true" data-punc="「" onclick="selectTile(this)" class="punc-tile bg-rose-100 border-2 border-rose-300 text-rose-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">「</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-rose-800 mt-0.5">開引號</div>
+        </div>
+
+        <!-- Tile 7: 關引號 -->
+        <div draggable="true" data-punc="」" onclick="selectTile(this)" class="punc-tile bg-fuchsia-100 border-2 border-fuchsia-300 text-fuchsia-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">」</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-fuchsia-800 mt-0.5">關引號</div>
+        </div>
+
+        <!-- Tile 8: 頓號 -->
+        <div draggable="true" data-punc="、" onclick="selectTile(this)" class="punc-tile bg-emerald-100 border-2 border-emerald-300 text-emerald-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-base sm:text-2xl md:text-3xl font-black leading-none">、</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-emerald-800 mt-0.5">頓號</div>
+        </div>
+
+        <!-- Tile 9: 省略號 -->
+        <div draggable="true" data-punc="……" onclick="selectTile(this)" class="punc-tile bg-indigo-100 border-2 border-indigo-300 text-indigo-950 rounded-xl p-1 text-center cursor-pointer shadow-sm">
+          <div class="text-xs sm:text-base md:text-xl font-black leading-none py-1 tracking-tighter">……</div>
+          <div class="text-[8px] sm:text-[10px] md:text-[11px] font-bold text-indigo-800 mt-0.5">省略號</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM BLOCK: Questions Board Area -->
+    <main class="flex-1 p-2 sm:p-3 md:p-4 flex flex-col justify-between overflow-hidden bg-white/70">
+      
+      <!-- Current Level Banner -->
+      <div class="flex items-center justify-between border-b border-slate-200 pb-1 flex-shrink-0">
+        <h3 id="level-title-display" class="text-xs sm:text-sm md:text-base font-black text-indigo-900 flex items-center gap-2">
+          <!-- Level title injected via JS -->
+        </h3>
+        <span id="level-score-badge" class="text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border">
+          進度：<span id="filled-count" class="text-indigo-600 font-black">0</span> 格
+        </span>
+      </div>
+
+      <!-- Question Sentences Container (Scales inside 16:9) -->
+      <div id="questions-container" class="flex-1 my-1 flex flex-col justify-evenly space-y-1 sm:space-y-1.5">
+        <!-- Dynamic question rows -->
+      </div>
+
+      <!-- Action Footer Toolbar -->
+      <footer class="pt-1.5 border-t border-slate-200 flex items-center justify-between flex-shrink-0 gap-2">
+        <div class="flex items-center gap-2">
+          <button onclick="resetCurrentLevel()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl transition">
+            🔄 重置本關
+          </button>
+          <button id="hint-btn" onclick="toggleHint()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs md:text-sm font-bold px-3 py-1.5 rounded-xl transition">
+            💡 答案提示
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="checkLevelAnswers()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold px-5 md:px-7 py-1.5 md:py-2 rounded-xl text-xs md:text-base shadow-lg shadow-emerald-500/20 active:scale-95 transition">
+            ✅ 檢查答案
+          </button>
+          <button id="next-lvl-btn" onclick="nextLevel()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 md:px-6 py-1.5 md:py-2 rounded-xl text-xs md:text-base shadow-md transition animate-bounce">
+            ➡️ 下一關
+          </button>
+        </div>
+      </footer>
+
+    </main>
+
+    <!-- Modal 1: Student Score Result Overlay -->
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-3xl p-5 md:p-6 max-w-sm w-full text-center shadow-2xl border-4 border-indigo-200 transform transition-all scale-95" id="modal-content">
+        <div id="modal-icon" class="text-5xl mb-1">🏆</div>
+        <h3 id="modal-title" class="text-xl md:text-2xl font-black text-slate-800 font-display">關卡完成！</h3>
+        
+        <div class="my-3 inline-flex flex-col items-center justify-center w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-lg border-4 border-white">
+          <span class="text-[10px] font-bold text-purple-200 uppercase">得分</span>
+          <div class="text-2xl font-black font-display"><span id="final-score">100</span> <span class="text-xs font-normal">分</span></div>
+        </div>
+
+        <p id="modal-msg" class="text-slate-600 text-xs sm:text-sm font-bold mb-4">
+          全對！你太棒了！
+        </p>
+
+        <div class="flex gap-2">
+          <button onclick="closeResultModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl transition text-xs md:text-sm">
+            返回查看
+          </button>
+          <button id="modal-primary-btn" onclick="nextLevelOrReset()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl transition text-xs md:text-sm shadow-md">
+            進入下一關 ➡️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: ⚙️ Teacher Edit Mode Overlay -->
+    <div id="teacher-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 hidden">
+      <div class="bg-white rounded-2xl md:rounded-3xl w-full max-w-4xl h-[92vh] max-h-[750px] shadow-2xl border-4 border-amber-300 flex flex-col overflow-hidden">
+        
+        <!-- Teacher Modal Header -->
+        <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">⚙️</span>
+            <div>
+              <h3 class="font-black text-base md:text-lg font-display">老師編輯模式</h3>
+              <p class="text-[11px] text-amber-100">自由編輯題目，用 <code class="bg-black/30 px-1 rounded text-amber-200">[標點]</code> 包裹正確答案！</p>
+            </div>
+          </div>
+          <button onclick="closeTeacherModal()" class="bg-black/20 hover:bg-black/30 text-white text-lg font-bold w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+        </div>
+
+        <!-- Teacher Modal Body -->
+        <div class="flex-1 overflow-y-auto p-3 sm:p-5 custom-scroll bg-slate-50 space-y-4">
+          
+          <!-- Instructions Box -->
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 text-xs md:text-sm text-amber-900 leading-relaxed">
+            <span class="font-black text-amber-950">💡 編輯提示：</span><br>
+            只要在文字中使用中括號 <code class="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-bold text-indigo-700">[標點]</code> 把正確答案包起來即可。<br>
+            例如輸入：<code class="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-bold text-slate-700">今天[，]老師帶我們去旅行[。]</code><br>
+            系統會自動生成對應的填空框：<strong>今天 $\square$ 老師帶我們去旅行 $\square$</strong>
+          </div>
+
+          <!-- Level Tabs in Editor -->
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div id="editor-level-tabs" class="flex flex-wrap gap-1">
+              <!-- Editor level buttons injected via JS -->
+            </div>
+            <button onclick="addNewLevelInEditor()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow transition">
+              ➕ 新增關卡
+            </button>
+          </div>
+
+          <!-- Active Level Content Form -->
+          <div id="editor-level-form" class="space-y-3">
+            <!-- Questions injected via JS -->
+          </div>
+
+        </div>
+
+        <!-- Teacher Modal Footer Controls -->
+        <div class="bg-white px-4 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="exportJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl border transition">
+              📤 匯出 JSON 題庫
+            </button>
+            <button onclick="document.getElementById('json-file-input').click()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl border transition">
+              📥 匯入 JSON 題庫
+            </button>
+            <button onclick="restoreDefaultLevels()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-3 py-2 rounded-xl border border-rose-200 transition">
+              🔄 復原預設題庫
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="deleteCurrentLevelInEditor()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+              🗑️ 刪除此關
+            </button>
+            <button onclick="saveTeacherEdits()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-bold px-5 py-2 rounded-xl shadow-md transition">
+              💾 儲存並套用
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Canvas for Confetti -->
+    <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-50"></canvas>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       DEFAULT BUILT-IN LEVELS DATA (Bracket Syntax Format)
+       ========================================================================== */
+    const DEFAULT_LEVELS_RAW = [
+      {
+        id: 1,
+        title: "第一關：基礎練習",
+        questions: [
+          "今天[，]老師帶我們去旅行[。]",
+          "弟弟問[：][「]怎樣才可以把功課做得好呢[？][」]",
+          "這隻玩具熊可以像朋友一樣和我聊天[，]真是有趣極了[。]",
+          "美欣掩着鼻子說[：][「]這條河真骯髒啊[！][」]"
+        ]
+      },
+      {
+        id: 2,
+        title: "第二關：頓號與對話",
+        questions: [
+          "媽媽買了蘋果[、]香蕉和西瓜[。]",
+          "老師說[：][「]請大家安靜坐好[。][」]",
+          "太棒了[！]我們終於贏得比賽了[！]",
+          "這本書是你的嗎[？]請你拿走吧[。]"
+        ]
+      },
+      {
+        id: 3,
+        title: "第三關：省略號與對話",
+        questions: [
+          "公園裡的花朵真多啊[！]有紅的[、]黃的[、]粉紅的[……]美不勝收[。]",
+          "小明高興地喊[：][「]放假了[！]我們可以去海邊玩了[！][」]",
+          "你知道這道題目的答案嗎[？]",
+          "森林裡有許多小動物[，]如兔子[、]松鼠[、]小鳥[……]非常熱鬧[。]"
+        ]
+      },
+      {
+        id: 4,
+        title: "第四關：綜合大挑戰",
+        questions: [
+          "爸爸問[：][「]你今天的功課做完了嗎[？][」]",
+          "哇[！]這裡的夜景真美麗啊[！]",
+          "菜市場裡賣著各式各樣的蔬菜[，]有高麗菜[、]紅蘿蔔[、]黃瓜[……]應有盡有[。]",
+          "姐姐說[：][「]祝你生日快樂[！][」]"
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       PARSER & STATE MANAGEMENT
+       ========================================================================== */
+    let rawLevelsData = [];
+    let parsedLevels = [];
+    let currentLevelIdx = 0;
+    let currentAnswers = [];
+    let selectedPunc = null;
+    let soundEnabled = true;
+    let showingHints = false;
+
+    // Load from LocalStorage or Default
+    function initData() {
+      const saved = localStorage.getItem('p2_punc_levels_data');
+      if (saved) {
+        try {
+          rawLevelsData = JSON.parse(saved);
+        } catch(e) {
+          rawLevelsData = JSON.parse(JSON.stringify(DEFAULT_LEVELS_RAW));
+        }
+      } else {
+        rawLevelsData = JSON.parse(JSON.stringify(DEFAULT_LEVELS_RAW));
+      }
+      parseAllLevels();
+    }
+
+    // Parse bracket syntax into UI runtime structure
+    function parseAllLevels() {
+      parsedLevels = rawLevelsData.map((lvl, lIdx) => {
+        let boxCounter = 0;
+        const parsedQuestions = lvl.questions.map((rawQ, qIdx) => {
+          const parts = [];
+          const answers = [];
+          const regex = /\[([^\]]+)\]/g;
+          let lastIndex = 0;
+          let match;
+
+          while ((match = regex.exec(rawQ)) !== null) {
+            if (match.index > lastIndex) {
+              parts.push({ type: 'text', content: rawQ.substring(lastIndex, match.index) });
+            }
+            parts.push({ type: 'box', index: boxCounter++ });
+            answers.push(match[1]);
+            lastIndex = regex.lastIndex;
+          }
+
+          if (lastIndex < rawQ.length) {
+            parts.push({ type: 'text', content: rawQ.substring(lastIndex) });
+          }
+
+          return { id: qIdx + 1, parts, answers, rawStr: rawQ };
+        });
+
+        return {
+          id: lvl.id || (lIdx + 1),
+          name: `第 ${lIdx + 1} 關`,
+          title: lvl.title || `第 ${lIdx + 1} 關`,
+          questions: parsedQuestions
+        };
+      });
+    }
+
+    /* ==========================================================================
+       WEB AUDIO SYNTHESIZER
+       ========================================================================== */
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'select') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'place') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } else if (type === 'clear') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'win') {
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, i) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.value = freq;
+            o.connect(g);
+            g.connect(ctx.destination);
+            const startTime = now + i * 0.1;
+            g.gain.setValueAtTime(0.15, startTime);
+            g.gain.linearRampToValueAtTime(0.01, startTime + 0.2);
+            o.start(startTime);
+            o.stop(startTime + 0.2);
+          });
+        }
+      } catch (e) {
+        console.warn('Audio play restricted:', e);
+      }
+    }
+
+    /* ==========================================================================
+       RENDERING & INTERACTION
+       ========================================================================== */
+
+    window.onload = function() {
+      initData();
+      renderLevelTabs();
+      loadLevel(0);
+      setupDragAndDrop();
+    };
+
+    // Render Tab Menu Buttons (簡潔「第 X 關」並列選單)
+    function renderLevelTabs() {
+      const container = document.getElementById('level-tabs');
+      if (!container) return;
+      
+      container.innerHTML = parsedLevels.map((lvl, idx) => {
+        const isSelected = idx === currentLevelIdx;
+        return `
+          <button onclick="switchLevel(${idx})" id="tab-lvl-${idx}" 
+            class="px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-200 ${
+              isSelected 
+                ? 'bg-amber-400 text-amber-950 shadow-md ring-2 ring-amber-300 scale-105' 
+                : 'bg-white/10 text-purple-100 hover:bg-white/20 hover:text-white'
+            }">
+            第 ${idx + 1} 關
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchLevel(index) {
+      if (index < 0 || index >= parsedLevels.length) return;
+      currentLevelIdx = index;
+      renderLevelTabs();
+      loadLevel(currentLevelIdx);
+      playSound('select');
+    }
+
+    function loadLevel(levelIndex) {
+      const lvl = parsedLevels[levelIndex];
+      showingHints = false;
+      document.getElementById('hint-btn').classList.remove('bg-amber-300', 'text-amber-950');
+
+      let totalBoxes = 0;
+      lvl.questions.forEach(q => {
+        q.parts.forEach(p => {
+          if (p.type === 'box') totalBoxes++;
+        });
+      });
+
+      currentAnswers = new Array(totalBoxes).fill('');
+      clearSelection();
+
+      // Render Level Banner Title
+      document.getElementById('level-title-display').innerHTML = `
+        <span class="bg-indigo-600 text-white px-2.5 py-0.5 rounded-md font-black text-xs sm:text-sm shadow-sm">第 ${levelIndex + 1} 關</span>
+        <span class="text-slate-700 font-bold text-xs sm:text-sm">${lvl.title || ''}</span>
+      `;
+
+      // Render Questions Container
+      const qContainer = document.getElementById('questions-container');
+      qContainer.innerHTML = '';
+
+      lvl.questions.forEach((q) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'q-card bg-slate-50/80 border border-slate-200 rounded-xl p-1.5 sm:p-2 md:p-2.5 flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs sm:text-base md:text-lg font-bold text-slate-800 transition hover:bg-white';
+
+        let html = `<span class="font-black text-indigo-600 text-sm sm:text-lg font-display mr-0.5">${q.id}.</span>`;
+
+        q.parts.forEach(part => {
+          if (part.type === 'text') {
+            html += `<span class="leading-relaxed">${part.content}</span>`;
+          } else if (part.type === 'box') {
+            html += `<div class="punc-box empty w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 text-xs sm:text-lg md:text-xl" data-box="${part.index}" onclick="handleBoxClick(this)"></div>`;
+          }
+        });
+
+        qCard.innerHTML = html;
+        qContainer.appendChild(qCard);
+      });
+
+      document.getElementById('next-lvl-btn').classList.add('hidden');
+      updateProgress();
+    }
+
+    /* Selection Logic */
+    function selectTile(element) {
+      const punc = element.getAttribute('data-punc');
+      playSound('select');
+
+      if (selectedPunc === punc) {
+        clearSelection();
+        return;
+      }
+
+      selectedPunc = punc;
+      document.querySelectorAll('.punc-tile').forEach(t => t.classList.remove('selected'));
+      element.classList.add('selected');
+
+      const hintBanner = document.getElementById('selected-hint');
+      document.getElementById('selected-punc-text').innerText = selectedPunc;
+      hintBanner.classList.remove('hidden');
+    }
+
+    function clearSelection() {
+      selectedPunc = null;
+      document.querySelectorAll('.punc-tile').forEach(t => t.classList.remove('selected'));
+      document.getElementById('selected-hint').classList.add('hidden');
+    }
+
+    function handleBoxClick(boxElement) {
+      const boxIdx = parseInt(boxElement.getAttribute('data-box'));
+
+      if (selectedPunc) {
+        fillBox(boxIdx, selectedPunc);
+        playSound('place');
+      } else {
+        if (currentAnswers[boxIdx] !== '') {
+          fillBox(boxIdx, '');
+          playSound('clear');
+        } else {
+          const bank = document.getElementById('punc-bank');
+          bank.classList.add('ring-2', 'ring-indigo-400');
+          setTimeout(() => bank.classList.remove('ring-2', 'ring-indigo-400'), 400);
+        }
+      }
+    }
+
+    function fillBox(boxIdx, punc) {
+      currentAnswers[boxIdx] = punc;
+      const boxElement = document.querySelector(`.punc-box[data-box="${boxIdx}"]`);
+
+      if (!boxElement) return;
+
+      if (punc !== '') {
+        boxElement.innerText = punc;
+        const textSizeClass = punc === '……' ? 'text-[10px] sm:text-xs md:text-sm tracking-tighter' : 'text-xs sm:text-lg md:text-xl';
+        boxElement.className = `punc-box filled w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 ${textSizeClass}`;
+      } else {
+        boxElement.innerText = '';
+        boxElement.className = 'punc-box empty w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 text-xs sm:text-lg md:text-xl';
+      }
+
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const filled = currentAnswers.filter(a => a !== '').length;
+      document.getElementById('filled-count').innerText = filled;
+    }
+
+    /* Drag and Drop Handlers */
+    let touchPunc = null;
+
+    function setupDragAndDrop() {
+      document.querySelectorAll('.punc-tile').forEach(tile => {
+        tile.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', tile.getAttribute('data-punc'));
+          playSound('select');
+        });
+      });
+
+      const ghost = document.getElementById('drag-ghost');
+
+      document.querySelectorAll('.punc-tile').forEach(tile => {
+        tile.addEventListener('touchstart', (e) => {
+          touchPunc = tile.getAttribute('data-punc');
+          const t = e.touches[0];
+          ghost.innerText = touchPunc;
+          ghost.style.left = `${t.clientX}px`;
+          ghost.style.top = `${t.clientY}px`;
+          ghost.style.display = 'flex';
+          playSound('select');
+        }, { passive: true });
+
+        tile.addEventListener('touchmove', (e) => {
+          if (!touchPunc) return;
+          const t = e.touches[0];
+          ghost.style.left = `${t.clientX}px`;
+          ghost.style.top = `${t.clientY}px`;
+        }, { passive: true });
+
+        tile.addEventListener('touchend', (e) => {
+          if (!touchPunc) return;
+          const t = e.changedTouches[0];
+          ghost.style.display = 'none';
+
+          const dropTarget = document.elementFromPoint(t.clientX, t.clientY);
+          if (dropTarget && dropTarget.classList.contains('punc-box')) {
+            const boxIdx = parseInt(dropTarget.getAttribute('data-box'));
+            fillBox(boxIdx, touchPunc);
+            playSound('place');
+          }
+          touchPunc = null;
+        });
+      });
+    }
+
+    document.addEventListener('dragover', (e) => {
+      if (e.target.classList.contains('punc-box')) {
+        e.preventDefault();
+        e.target.classList.add('scale-110', 'border-indigo-500');
+      }
+    });
+
+    document.addEventListener('dragleave', (e) => {
+      if (e.target.classList.contains('punc-box')) {
+        e.target.classList.remove('scale-110', 'border-indigo-500');
+      }
+    });
+
+    document.addEventListener('drop', (e) => {
+      if (e.target.classList.contains('punc-box')) {
+        e.preventDefault();
+        e.target.classList.remove('scale-110', 'border-indigo-500');
+        const punc = e.dataTransfer.getData('text/plain');
+        if (punc) {
+          const boxIdx = parseInt(e.target.getAttribute('data-box'));
+          fillBox(boxIdx, punc);
+          playSound('place');
+        }
+      }
+    });
+
+    /* ==========================================================================
+       CHECK ANSWERS & LEVEL COMPLETION
+       ========================================================================== */
+
+    function getLevelCorrectAnswers(levelIndex) {
+      const lvl = parsedLevels[levelIndex];
+      let correctList = [];
+      lvl.questions.forEach(q => {
+        correctList = correctList.concat(q.answers);
+      });
+      return correctList;
+    }
+
+    function checkLevelAnswers() {
+      const correctAnswers = getLevelCorrectAnswers(currentLevelIdx);
+      if (correctAnswers.length === 0) return;
+
+      let correctCount = 0;
+
+      for (let i = 0; i < correctAnswers.length; i++) {
+        const box = document.querySelector(`.punc-box[data-box="${i}"]`);
+        if (!box) continue;
+
+        box.classList.remove('correct', 'incorrect');
+
+        if (currentAnswers[i] === correctAnswers[i]) {
+          correctCount++;
+          box.classList.add('correct');
+        } else {
+          box.classList.add('incorrect');
+        }
+      }
+
+      const isPerfect = correctCount === correctAnswers.length;
+      const score = Math.round((correctCount / correctAnswers.length) * 100);
+
+      // Modal Display
+      const modal = document.getElementById('result-modal');
+      document.getElementById('final-score').innerText = score;
+
+      if (isPerfect) {
+        document.getElementById('modal-icon').innerText = '🎉';
+        document.getElementById('modal-title').innerText = '太棒了！答對全部！';
+        document.getElementById('modal-msg').innerText = `你獲得了滿分 100 分！表現真傑出！`;
+        document.getElementById('modal-primary-btn').innerText = currentLevelIdx < parsedLevels.length - 1 ? '進入下一關 ➡️' : '重新溫習本關';
+        document.getElementById('next-lvl-btn').classList.remove('hidden');
+        playSound('win');
+        triggerConfetti();
+      } else {
+        document.getElementById('modal-icon').innerText = '💪';
+        document.getElementById('modal-title').innerText = '再試一次！';
+        document.getElementById('modal-msg').innerText = `答對 ${correctCount} / ${correctAnswers.length} 格（得分：${score} 分）。檢查紅框後繼續努力！`;
+        document.getElementById('modal-primary-btn').innerText = '返回修改';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function toggleHint() {
+      showingHints = !showingHints;
+      const correctAnswers = getLevelCorrectAnswers(currentLevelIdx);
+      const hintBtn = document.getElementById('hint-btn');
+
+      if (showingHints) {
+        hintBtn.classList.add('bg-amber-300', 'text-amber-950');
+        for (let i = 0; i < correctAnswers.length; i++) {
+          fillBox(i, correctAnswers[i]);
+        }
+        checkLevelAnswers();
+      } else {
+        hintBtn.classList.remove('bg-amber-300', 'text-amber-950');
+        resetCurrentLevel();
+      }
+    }
+
+    function nextLevelOrReset() {
+      closeResultModal();
+      if (currentLevelIdx < parsedLevels.length - 1) {
+        nextLevel();
+      } else {
+        resetCurrentLevel();
+      }
+    }
+
+    function nextLevel() {
+      if (currentLevelIdx < parsedLevels.length - 1) {
+        switchLevel(currentLevelIdx + 1);
+      }
+    }
+
+    function resetCurrentLevel() {
+      loadLevel(currentLevelIdx);
+      playSound('clear');
+    }
+
+    function closeResultModal() {
+      document.getElementById('result-modal').classList.add('hidden');
+    }
+
+    /* ==========================================================================
+       ⚙️ TEACHER EDIT MODE LOGIC
+       ========================================================================== */
+
+    let activeEditorLevelIdx = 0;
+
+    function openTeacherModal() {
+      activeEditorLevelIdx = currentLevelIdx;
+      renderEditorModal();
+      document.getElementById('teacher-modal').classList.remove('hidden');
+    }
+
+    function closeTeacherModal() {
+      document.getElementById('teacher-modal').classList.add('hidden');
+    }
+
+    function renderEditorModal() {
+      // Render Editor Level Tabs
+      const tabsContainer = document.getElementById('editor-level-tabs');
+      tabsContainer.innerHTML = rawLevelsData.map((lvl, idx) => `
+        <button onclick="switchEditorLevel(${idx})" class="px-2.5 py-1 rounded-lg text-xs font-bold transition ${idx === activeEditorLevelIdx ? 'bg-amber-500 text-white shadow' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">
+          ${lvl.title || '第 ' + (idx+1) + ' 關'}
+        </button>
+      `).join('');
+
+      // Render Active Level Form
+      const formContainer = document.getElementById('editor-level-form');
+      const activeLvl = rawLevelsData[activeEditorLevelIdx];
+
+      if (!activeLvl) {
+        formContainer.innerHTML = `<div class="text-slate-400 text-center py-8 font-bold">請先點選或新增關卡</div>`;
+        return;
+      }
+
+      let html = `
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-black text-slate-700 whitespace-nowrap">關卡名稱：</label>
+            <input type="text" id="editor-title-input" value="${activeLvl.title || ''}" class="flex-1 border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500">
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-black text-slate-700">題目列表（用 [標點] 包裹正確答案）：</label>
+              <button onclick="addQuestionInEditor()" class="text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded transition">
+                ➕ 新增題目
+              </button>
+            </div>
+            <div id="editor-questions-list" class="space-y-2">
+      `;
+
+      activeLvl.questions.forEach((qStr, qIdx) => {
+        html += `
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-amber-700 w-5">${qIdx + 1}.</span>
+            <input type="text" data-qidx="${qIdx}" value="${qStr.replace(/"/g, '&quot;')}" class="editor-q-input flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500">
+            <button onclick="deleteQuestionInEditor(${qIdx})" class="text-rose-500 hover:text-rose-700 text-xs font-bold p-1">🗑️</button>
+          </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      formContainer.innerHTML = html;
+    }
+
+    function switchEditorLevel(idx) {
+      activeEditorLevelIdx = idx;
+      renderEditorModal();
+    }
+
+    function addQuestionInEditor() {
+      if (!rawLevelsData[activeEditorLevelIdx]) return;
+      rawLevelsData[activeEditorLevelIdx].questions.push("請輸入題目[，]並用括號填寫標點[。]");
+      renderEditorModal();
+    }
+
+    function deleteQuestionInEditor(qIdx) {
+      if (!rawLevelsData[activeEditorLevelIdx]) return;
+      rawLevelsData[activeEditorLevelIdx].questions.splice(qIdx, 1);
+      renderEditorModal();
+    }
+
+    function addNewLevelInEditor() {
+      const newId = rawLevelsData.length + 1;
+      rawLevelsData.push({
+        id: newId,
+        title: `第 ${newId} 關：新關卡`,
+        questions: [
+          "這是第一題[，]請填寫標點[。]"
+        ]
+      });
+      activeEditorLevelIdx = rawLevelsData.length - 1;
+      renderEditorModal();
+    }
+
+    function deleteCurrentLevelInEditor() {
+      if (rawLevelsData.length <= 1) {
+        alert("至少需要保留一個關卡！");
+        return;
+      }
+      rawLevelsData.splice(activeEditorLevelIdx, 1);
+      activeEditorLevelIdx = Math.max(0, activeEditorLevelIdx - 1);
+      renderEditorModal();
+    }
+
+    function saveTeacherEdits() {
+      // Collect current input values
+      const titleInput = document.getElementById('editor-title-input');
+      if (titleInput && rawLevelsData[activeEditorLevelIdx]) {
+        rawLevelsData[activeEditorLevelIdx].title = titleInput.value.trim() || `第 ${activeEditorLevelIdx + 1} 關`;
+      }
+
+      const qInputs = document.querySelectorAll('.editor-q-input');
+      qInputs.forEach((input) => {
+        const qIdx = parseInt(input.getAttribute('data-qidx'));
+        if (rawLevelsData[activeEditorLevelIdx] && rawLevelsData[activeEditorLevelIdx].questions[qIdx] !== undefined) {
+          rawLevelsData[activeEditorLevelIdx].questions[qIdx] = input.value.trim();
+        }
+      });
+
+      // Save to localStorage
+      localStorage.setItem('p2_punc_levels_data', JSON.stringify(rawLevelsData));
+      
+      // Reparse and re-render main UI
+      parseAllLevels();
+      renderLevelTabs();
+      currentLevelIdx = Math.min(currentLevelIdx, parsedLevels.length - 1);
+      loadLevel(currentLevelIdx);
+      
+      closeTeacherModal();
+      playSound('win');
+    }
+
+    function restoreDefaultLevels() {
+      if (confirm("確定要恢復預設題庫嗎？這將覆蓋您的自訂修改。")) {
+        rawLevelsData = JSON.parse(JSON.stringify(DEFAULT_LEVELS_RAW));
+        localStorage.removeItem('p2_punc_levels_data');
+        parseAllLevels();
+        renderLevelTabs();
+        loadLevel(0);
+        closeTeacherModal();
+        playSound('clear');
+      }
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rawLevelsData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "標點符號題庫.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function handleImportJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            rawLevelsData = imported;
+            localStorage.setItem('p2_punc_levels_data', JSON.stringify(rawLevelsData));
+            parseAllLevels();
+            renderLevelTabs();
+            loadLevel(0);
+            closeTeacherModal();
+            playSound('win');
+            alert("題庫匯入成功！");
+          } else {
+            alert("格式不符合（需為 JSON 陣列）");
+          }
+        } catch(err) {
+          alert("JSON 檔案解析失敗，請確認格式。");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ==========================================================================
+       CONFETTI CELEBRATION
+       ========================================================================== */
+
+    function triggerConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+
+      const particles = [];
+      const colors = ['#f43f5e', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
+
+      for (let i = 0; i < 90; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 14,
+          size: Math.random() * 7 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 8
+        });
+      }
+
+      let animId;
+      const startTime = Date.now();
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const elapsed = Date.now() - startTime;
+
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.25;
+          p.rotation += p.vRot;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        if (elapsed < 2000) {
+          animId = requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          cancelAnimationFrame(animId);
+        }
+      }
+
+      animate();
+    }
+  </script>
+</body>
+</html>
